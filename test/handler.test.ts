@@ -1,7 +1,7 @@
-import { handleRequest } from '../src/handler'
+import handler from '../src/handler'
 import makeServiceWorkerEnv from 'service-worker-mock'
 
-declare var global: any
+declare let global: any;
 
 describe('handle', () => {
   beforeEach(() => {
@@ -9,10 +9,10 @@ describe('handle', () => {
     jest.resetModules()
   })
 
-  test('handle GET', async () => {
-    const result = await handleRequest(new Request('/', { method: 'GET' }))
+  test('handle status', async () => {
+    const result = await handler.handle(new Request('/status', { method: 'GET' }))
     expect(result.status).toEqual(200)
     const text = await result.text()
-    expect(text).toEqual('request method: GET')
+    expect(text).toEqual('Ok')
   })
 })
