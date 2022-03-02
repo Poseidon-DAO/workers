@@ -1,4 +1,6 @@
 import { Router } from 'itty-router';
+import Joi = require("joi");
+// import * as Joi from 'joi'
 
 const router = Router();
 
@@ -11,28 +13,65 @@ router.get("/artists", async () => {
 
   const artists: Artist[] = [];
   for (const key of values.keys) {
-    const value = await ARTISTS.get(`artist:${key}`, { type: "json" });
-    artists.push(value as Artist);
+    const value = await ARTISTS.get(key.name, { type: "json" });
+    if (value) artists.push(value as Artist);
   }
 
   return new Response(JSON.stringify(artists));
 });
 
-router.get("/artists/:email", async ({ params }) => {
-  const value = await ARTISTS.get(`artist:${params?.email ?? ""}`, { type: "json" });
-  if (value === null) {
-    return new Response("Not Found", { status: 404 });
+const getArtistByEmail = async (email: string): Promise<Artist> => {
+  const value: Artist | null = await ARTISTS.get(`artist:${email}`, { type: "json" });
+  if (value == null) {
+    const error: APIError = {
+      message: "Not Found",
+      code: 404,
+    };
+    throw error;
   }
+  return value;
+}
 
-  return new Response(JSON.stringify(value), {
-    headers: {
-      "Content-Type": "application/json"
-    }
-  });
+router.get("/artists/:email", async ({ params }) => {
+  try {
+    const value = await getArtistByEmail(params?.email ?? "")
+    return new Response(JSON.stringify(value), {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+  } catch (error) {
+    return new Response((error as APIError).message, { status: (error as APIError).code });
+  }
+});
+
+const schema = Joi.object().keys({
+  name: Joi.string().trim().max(70).required(),
+  email: Joi.string().lowercase().trim().max(320).email({ tlds: { allow: false }, minDomainSegments: 2 }).required(),
+  bio: Joi.string().trim().max(320).required(),
+  twitter_url: Joi.string().uri().pattern(new RegExp('twitter.com')).required(),
+  instagram_url: Joi.string().uri().pattern(new RegExp('instagram.com')),
+  website: Joi.string().uri(),
 });
 
 router.post("/artists", async (req: Request) => {
   const body: Artist = await req.json();
+
+  try {
+    await schema.validateAsync(body);
+  } catch (error) {
+    return new Response(error as string, { status: 400 });
+  }
+
+  try {
+    const artist = await getArtistByEmail(body.email ?? "");
+    if (artist) {
+      return new Response("You cannot apply twice", { status: 409 });
+    }
+  } catch (_error) {
+    undefined
+  }
+
   await ARTISTS.put(`artist:${body?.email ?? ""}`, JSON.stringify(body));
   return new Response("Ok");
 });
