@@ -1,8 +1,9 @@
 import { Router } from 'itty-router';
 import Joi = require("joi");
-// import * as Joi from 'joi'
 
 const router = Router();
+
+router.options("*", () => new Response("", { status: 200 }));
 
 router.get("/status", () => {
   return new Response("Ok")
