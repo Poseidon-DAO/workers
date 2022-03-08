@@ -2,17 +2,20 @@ name = "workers"
 type = "javascript"
 zone_id = ""
 account_id = "2e52b9d8b35206f7eb878ae4b5fd182f"
-route = ""
+route = "dev.workers.poseidondao.workers.dev"
 workers_dev = true
 compatibility_date = "2022-02-28"
 webpack_config = "webpack.config.js"
 
 kv_namespaces = [ 
-  { binding = "ARTISTS", preview_id = "0ecdbf6c8d514077a56aa4eda7de269d", id = "6a1071070af64e2a80130a9d167c1a54" }
+  { binding = "ARTISTS", preview_id = "0ecdbf6c8d514077a56aa4eda7de269d", id = "6a1071070af64e2a80130a9d167c1a54" },
 ]
 
 [vars]
 ENVIRONMENT = "dev"
+
+# [secrets]
+# AUTH_SECRET
 
 [build]
 command = "npm install && npm run build"
@@ -24,12 +27,14 @@ name = "workers-dev"
 
 [env.staging]
 name = "workers-staging"
+route = "staging.workers.poseidondao.workers.dev"
 vars = { ENVIRONMENT = "staging" }
 kv_namespaces = [ 
   { binding = "ARTISTS", id = "d7f7b631a6974bfda77407fda7db6ad9" }
 ]
 
 [env.production]
+route = "workers.poseidondao.workers.dev"
 vars = { ENVIRONMENT = "production" }
 kv_namespaces = [ 
   { binding = "ARTISTS", id = "" }

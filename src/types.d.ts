@@ -1,5 +1,3 @@
-declare let ARTISTS: KVNamespace;
-
 interface Artist {
   name: string;
   email: string;

@@ -1,4 +1,5 @@
 import { Router } from 'itty-router';
+import { withAuth } from './middlewares';
 import Joi = require("joi");
 
 const router = Router();
@@ -9,7 +10,7 @@ router.get("/status", () => {
   return new Response("Ok")
 });
 
-router.get("/artists", async () => {
+router.get("/artists", withAuth, async () => {
   const values = await ARTISTS.list();
 
   const artists: Artist[] = [];
@@ -33,7 +34,7 @@ const getArtistByEmail = async (email: string): Promise<Artist> => {
   return value;
 }
 
-router.get("/artists/:email", async ({ params }) => {
+router.get("/artists/:email", withAuth, async ({ params }) => {
   try {
     const value = await getArtistByEmail(params?.email ?? "")
     return new Response(JSON.stringify(value), {
