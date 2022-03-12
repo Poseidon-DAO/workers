@@ -1,10 +1,13 @@
 import { Router } from 'itty-router';
 import { withAuth } from './middlewares';
+import { corsHeaders } from './http';
 import Joi = require("joi");
 
 const router = Router();
 
-router.options("*", () => new Response("", { status: 200 }));
+router.options("*", () => new Response("", {
+  status: 200, headers: corsHeaders()
+}));
 
 router.get("/status", () => {
   return new Response("Ok")
@@ -62,20 +65,20 @@ router.post("/artists", async (req: Request) => {
   try {
     await schema.validateAsync(body);
   } catch (error) {
-    return new Response(error as string, { status: 400 });
+    return new Response(error as string, { status: 400, headers: corsHeaders() });
   }
 
   try {
     const artist = await getArtistByEmail(body.email ?? "");
     if (artist) {
-      return new Response("You cannot apply twice", { status: 409 });
+      return new Response("You cannot apply twice", { status: 409, headers: corsHeaders() });
     }
   } catch (_error) {
     undefined
   }
 
   await ARTISTS.put(`artist:${body?.email ?? ""}`, JSON.stringify(body));
-  return new Response("Ok");
+  return new Response("Ok", { headers: corsHeaders() });
 });
 
 router.all("*", () => new Response("Not Found", { status: 404 }));
