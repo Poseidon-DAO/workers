@@ -55,8 +55,8 @@ const schema = Joi.object().keys({
   email: Joi.string().lowercase().trim().max(320).email({ tlds: { allow: false }, minDomainSegments: 2 }).required(),
   bio: Joi.string().trim().max(320).required(),
   twitter_url: Joi.string().uri().pattern(new RegExp('twitter.com')).required(),
-  instagram_url: Joi.string().uri().pattern(new RegExp('instagram.com')),
-  website: Joi.string().uri(),
+  instagram_url: Joi.string().uri().pattern(new RegExp('instagram.com')).allow(null, ''),
+  website: Joi.string().uri().allow(null, ''),
 });
 
 router.post("/artists", async (req: Request) => {
