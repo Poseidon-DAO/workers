@@ -1,16 +1,14 @@
 import { Router } from 'itty-router';
 import { withAuth } from './middlewares';
-import { corsHeaders } from './http';
+import { corsHeaders, NewAPIResponse, NewAPIError } from './http';
 import Joi = require("joi");
 
 const router = Router();
 
-router.options("*", () => new Response("", {
-  status: 200, headers: corsHeaders()
-}));
+router.options("*", () => NewAPIResponse("", 200, corsHeaders()));
 
 router.get("/status", () => {
-  return new Response("Ok")
+  return NewAPIResponse("Ok")
 });
 
 router.get("/artists", withAuth, async () => {
@@ -21,16 +19,17 @@ router.get("/artists", withAuth, async () => {
     const value = await ARTISTS.get(key.name, { type: "json" });
     if (value) artists.push(value as Artist);
   }
-
-  return new Response(JSON.stringify(artists));
+  return NewAPIResponse(artists);
 });
 
 const getArtistByEmail = async (email: string): Promise<Artist> => {
   const value: Artist | null = await ARTISTS.get(`artist:${email}`, { type: "json" });
   if (value == null) {
     const error: APIError = {
-      message: "Not Found",
-      code: 404,
+      error: {
+        message: "Not Found",
+        code: 404,
+      }
     };
     throw error;
   }
@@ -40,13 +39,9 @@ const getArtistByEmail = async (email: string): Promise<Artist> => {
 router.get("/artists/:email", withAuth, async ({ params }) => {
   try {
     const value = await getArtistByEmail(params?.email ?? "")
-    return new Response(JSON.stringify(value), {
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
+    return NewAPIResponse(value)
   } catch (error) {
-    return new Response((error as APIError).message, { status: (error as APIError).code });
+    return NewAPIError((error as APIError).error.message, (error as APIError).error.code)
   }
 });
 
@@ -65,22 +60,23 @@ router.post("/artists", async (req: Request) => {
   try {
     await schema.validateAsync(body);
   } catch (error) {
-    return new Response(error as string, { status: 400, headers: corsHeaders() });
+    return NewAPIError(error as string, 400, corsHeaders())
   }
 
   try {
     const artist = await getArtistByEmail(body.email ?? "");
     if (artist) {
-      return new Response("You cannot apply twice", { status: 409, headers: corsHeaders() });
+      return NewAPIError("You cannot apply twice", 409, corsHeaders())
     }
   } catch (_error) {
     undefined
   }
 
   await ARTISTS.put(`artist:${body?.email ?? ""}`, JSON.stringify(body));
-  return new Response("Ok", { headers: corsHeaders() });
+
+  return NewAPIResponse("Ok", 200, corsHeaders())
 });
 
-router.all("*", () => new Response("Not Found", { status: 404 }));
+router.all("*", () => NewAPIError("Not Found", 404));
 
 export default router;

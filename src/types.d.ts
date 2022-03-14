@@ -7,7 +7,13 @@ interface Artist {
   website?: string;
 }
 
+interface APIResponse {
+  data: string;
+}
+
 interface APIError {
-  message: string;
-  code: number;
+  error: {
+    code: number;
+    message: string;
+  };
 }
