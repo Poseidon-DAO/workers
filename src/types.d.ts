@@ -5,6 +5,7 @@ interface Artist {
   twitter_url: string;
   instagram_url?: string;
   website?: string;
+  project?: string;
 }
 
 interface APIResponse {

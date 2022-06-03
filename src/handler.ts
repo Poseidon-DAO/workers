@@ -52,6 +52,7 @@ const schema = Joi.object().keys({
   twitter_url: Joi.string().uri().pattern(new RegExp('twitter.com')).required(),
   instagram_url: Joi.string().uri().pattern(new RegExp('instagram.com')).allow(null, ''),
   website: Joi.string().uri().allow(null, ''),
+  project: Joi.string().valid("Derivatives", "Genesis", "Other").required(),
 });
 
 router.post("/artists", async (req: Request) => {
