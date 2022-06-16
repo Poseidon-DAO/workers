@@ -1,11 +1,12 @@
 import { Router } from 'itty-router';
 import { withAuth } from './middlewares';
-import { corsHeaders, NewAPIResponse, NewAPIError } from './http';
+import { NewAPIResponse, NewAPIError } from './http';
+import { handleCors, corsHeaders } from "./cors";
 import Joi = require("joi");
 
 const router = Router();
 
-router.options("*", () => NewAPIResponse("", 200, corsHeaders()));
+router.options("*", handleCors({}));
 
 router.get("/status", () => {
   return NewAPIResponse("Ok")
