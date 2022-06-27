@@ -2,7 +2,9 @@ import { Router } from 'itty-router';
 import { withAuth } from './middlewares';
 import { NewAPIResponse, NewAPIError } from './http';
 import { handleCors, corsHeaders } from "./cors";
+import { sendEmail, formatArtistApplication } from './mailer';
 import Joi = require("joi");
+import { slackApplicationError, slackApplicationSuccess } from './slack';
 
 const router = Router();
 
@@ -49,7 +51,9 @@ router.get("/artists/:email", withAuth, async ({ params }) => {
 const schema = Joi.object().keys({
   name: Joi.string().trim().max(70).required(),
   email: Joi.string().lowercase().trim().max(320).email({ tlds: { allow: false }, minDomainSegments: 2 }).required(),
-  bio: Joi.string().trim().max(320).required(),
+  bio: Joi.string().trim().max(10000).required(),
+  exhibitions: Joi.string().trim().max(10000).allow(null, ''),
+  samples: Joi.string().uri().allow(null, ''),
   twitter_url: Joi.string().uri().pattern(new RegExp('twitter.com')).required(),
   instagram_url: Joi.string().uri().pattern(new RegExp('instagram.com')).allow(null, ''),
   website: Joi.string().uri().allow(null, ''),
@@ -75,6 +79,14 @@ router.post("/artists", async (req: Request) => {
   }
 
   await ARTISTS.put(`artist:${body?.email ?? ""}`, JSON.stringify(body));
+
+  try {
+    await sendEmail(POSTMARK_SENDER, POSTMARK_RECEIVER, POSTMARK_SUBJECT, formatArtistApplication(body));
+    await slackApplicationSuccess(body);
+  } catch (err) {
+    console.log("Cannot send email:", err);
+    await slackApplicationError(body, JSON.stringify(err));
+  }
 
   return NewAPIResponse("Ok", 200, corsHeaders())
 });

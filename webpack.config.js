@@ -10,6 +10,7 @@ module.exports = {
   mode: 'development',
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
+    // fallback: { "https": require.resolve("https-browserify") }
   },
   module: {
     rules: [
