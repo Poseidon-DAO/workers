@@ -31,7 +31,6 @@
     "itty-router": "^2.6.1",
     "jest": "^28.1.1",
     "joi": "^17.6.0",
-    "postmark": "^3.0.12",
     "prettier": "^2.7.1",
     "serverless-cloudflare-workers": "^1.2.0",
     "service-worker-mock": "^2.0.5",
